@@ -27,9 +27,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function addListener(domBookItem, bookDetails){
-        console.log("book", bookDetails)
-        console.log("dombookitem: ", domBookItem)
-
         domBookItem.addEventListener('click', e =>{
             const domShowPanel = document.getElementById('show-panel')
             domShowPanel.innerHTML = `
@@ -38,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 <h2>${bookDetails.subtitle}<h2>
                 <p style="font-weight: 400; font-size: 16px; width: 500px">${bookDetails.description}</p>
                 <ul id="book-details-users"></ul>
-                <button>Like</button>`
+                <button id="like-button">Like</button>`
 
             const domBookUserDetails = document.getElementById('book-details-users')
             console.log(domBookUserDetails)
@@ -51,7 +48,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 domBookUserDetails.append(domUserDetail)
             })
-            console.log("src", bookDetails.img_url)
+
+            handleLikeButton()
         })
     }
+
+    // function handleLikeButton(){
+    //     const domLikeButton = document.getElementById('like-button')
+    //     domLikeButton.addEventListener('click', e=>{
+            
+    //     })
+    // }
 });
