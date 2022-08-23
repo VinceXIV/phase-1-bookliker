@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", function() {
         const domBooks = document.getElementById('list')
 
         data.forEach(book =>{
-            console.log(book)
             const domBookItem = createDomList(domBooks, book)
             styleItem(domBookItem)
             addListener(domBookItem, book)
@@ -26,37 +25,99 @@ document.addEventListener("DOMContentLoaded", function() {
         domBookItem.style.cursor = "pointer"
     }
 
-    function addListener(domBookItem, bookDetails){
+    function addListener(domBookItem){
         domBookItem.addEventListener('click', e =>{
-            const domShowPanel = document.getElementById('show-panel')
-            domShowPanel.innerHTML = `
-                <img src="${bookDetails.img_url}"/>
-                <h1>${bookDetails.title}</h1>
-                <h2>${bookDetails.subtitle}<h2>
-                <p style="font-weight: 400; font-size: 16px; width: 500px">${bookDetails.description}</p>
-                <ul id="book-details-users"></ul>
-                <button id="like-button">Like</button>`
 
-            const domBookUserDetails = document.getElementById('book-details-users')
-            console.log(domBookUserDetails)
-            bookDetails.users.forEach(userDetail =>{
-                console.log("userdetail: ", userDetail)
-                const domUserDetail = document.createElement('li')
-                domUserDetail.style.fontSize = "14px"
-                domUserDetail.id = userDetail.id
-                domUserDetail.textContent = userDetail.username
-
-                domBookUserDetails.append(domUserDetail)
+            fetch('http://localhost:3000/books')
+            .then(result => result.json())
+            .then(book => {
+                let bookDetails = book.find(item => domBookItem.id == item.id)
+                const domShowPanel = document.getElementById('show-panel')
+                domShowPanel.innerHTML = `
+                    <div id="${bookDetails.id}">
+                        <img src="${bookDetails.img_url}"/>
+                        <h1>${bookDetails.title}</h1>
+                        <h2>${bookDetails.subtitle}</h2>
+                        <p style="width: 500px">${bookDetails.description}</p>
+                        <ul id="book-details-users"></ul>
+                        <button id="like-button">Like</button>
+                    </div>`
+    
+                const domBookUserDetails = document.getElementById('book-details-users')
+                bookDetails.users.forEach(userDetail =>{
+                    const domUserDetail = document.createElement('li')
+                    domUserDetail.style.fontSize = "14px"
+                    domUserDetail.style.fontWeight = '600'
+                    domUserDetail.id = userDetail.id
+                    domUserDetail.textContent = userDetail.username
+    
+                    domBookUserDetails.append(domUserDetail)
+                })
+    
+                handleLikeButton()
             })
-
-            handleLikeButton()
         })
+
     }
 
-    // function handleLikeButton(){
-    //     const domLikeButton = document.getElementById('like-button')
-    //     domLikeButton.addEventListener('click', e=>{
-            
-    //     })
-    // }
+    function handleLikeButton(){
+        const domLikeButton = document.getElementById('like-button')
+
+        domLikeButton.addEventListener('click', e=>{
+            domLikeButton.textContent = "Liked!"
+            const likedBookId = domLikeButton.parentElement.id
+
+            //--------------------
+            const newLikeObject = []
+            const currentLikers = domLikeButton.parentElement.querySelectorAll('ul li')
+            currentLikers.forEach(liker => {
+                newLikeObject.push(
+                    {
+                        id: liker.id,
+                        username: liker.textContent
+                    }
+                )
+            })
+    
+            newLikeObject.push(
+                {
+                    id: "1",
+                    username: "pouros"
+                }
+            )
+
+
+            //-------------------------------
+
+            fetch(`http://localhost:3000/books/${likedBookId}`, {
+                method: 'PATCH',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    users: newLikeObject
+                })
+            })
+            .then(result => result.json())
+            .then(data => {
+                const domBookUserDetails = document.getElementById("book-details-users")
+                const pouros = Array.from(domBookUserDetails.children).find(user =>{
+                    return user.textContent === "pouros"
+                })
+
+                //we are assuming we are logged in as pouros, so we are checking if pouros already liked the book
+                if(!pouros){
+                    const domUserDetail = document.createElement('li')
+                    domUserDetail.style.fontSize = "14px"
+                    domUserDetail.style.fontWeight = '600'
+                    domUserDetail.id = "1"
+                    domUserDetail.textContent = "pouros"
+    
+                    domBookUserDetails.append(domUserDetail)
+                }
+
+            })
+        })
+    }
 });
